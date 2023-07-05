@@ -9,7 +9,6 @@ import UIKit
 
 class ViewController: UITableViewController {
     var petitions = [Petition]()
-    var filteredPetitions = [Petition]()
     var urlString = ""
     let urlForRecentPetitions = "recentPetitions"
 
@@ -30,14 +29,21 @@ class ViewController: UITableViewController {
             urlString = ""
         }
 
-
-        if let url = URL(string: urlString) {
-            if let data = try? Data(contentsOf: url) {
-                parse(json: data)
-                filteredPetitions = petitions
-                return
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            if let url = URL(string: self?.urlString ?? "") {
+                if let data = try? Data(contentsOf: url) {
+                    self?.parse(json: data)
+                    return
+                }
             }
         }
+
+//        if let url = URL(string: urlString) {
+//            if let data = try? Data(contentsOf: url) {
+//                parse(json: data)
+//                return
+//            }
+//        }
 
         showError()
 
@@ -70,6 +76,7 @@ class ViewController: UITableViewController {
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
         let petition = petitions[indexPath.row]
         cell.textLabel?.text = petition.title
